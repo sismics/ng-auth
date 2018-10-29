@@ -4,6 +4,7 @@ angular
     .module('ngAuth', [])
     .service('Auth', function($window, $location) {
         var user = {};
+        var prefix = '';
         var requestedPath = null;
         var requiredPrivilege = null;
 
@@ -39,12 +40,32 @@ angular
             hasRequiredPrivilege: hasRequiredPrivilege,
 
             /**
-             * Set a base function required for login.
+             * Set a prefix for authentication endpoints.
              * 
+             * @param newPrefix The prefix
+             */
+            setPrefix: function(newPrefix) {
+                prefix = newPrefix;
+                return this;
+            },
+
+            /**
+             * Return the prefix for authentication endpoints.
+             *
+             * @return The prefix
+             */
+            getPrefix: function() {
+                return prefix;
+            },
+
+            /**
+             * Set a privilege required for login.
+             *
              * @param privilege The base function
              */
             setRequiredPrivilege: function(privilege) {
                 requiredPrivilege = privilege;
+                return this;
             },
 
             isConnected: function() {
@@ -87,9 +108,9 @@ angular
         };
 
         $scope.submitLogin = function() {
-            Restangular.all('login').post({username: $scope.username, password: $scope.password})
+            Restangular.all(Auth.getPrefix() + 'login').post({username: $scope.username, password: $scope.password})
                 .then(function(data) {
-                    return Restangular.one('user').one('info').get();
+                    return Restangular.one(Auth.getPrefix() + 'user').one('info').get();
                 })
                 .then(function (data) {
                     Auth.setUser(data.item);
@@ -103,7 +124,7 @@ angular
         };
 
         $scope.submitLogout = function() {
-            Restangular.one('logout').post().then(function(data) {
+            Restangular.one(Auth.getPrefix() + 'logout').post().then(function(data) {
                 $scope.reloadApp();
             });
         };
